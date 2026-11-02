@@ -342,11 +342,11 @@ function pickFile(accept, onFile) {
   inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.remove(); if (f) onFile(f); });
   document.body.append(inp); inp.click();
 }
-async function readText(file) {
-  const buf = await file.arrayBuffer();
+function decodeBuf(buf) {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
   catch (e) { return new TextDecoder('windows-1252').decode(buf); }
 }
+async function readText(file) { return decodeBuf(await file.arrayBuffer()); }
 
 /* CSV */
 function csvEscape(s) { return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
@@ -379,37 +379,61 @@ function csvExportFolder(f) {
   return lines.join('\n');
 }
 /* opts.cat: alles in diese Kategorie. opts.folder: Kategorien aus der 3. Spalte anlegen. */
+function importRows(rows, opts) {
+  const folderId = opts.cat ? opts.cat.folderId : opts.folder.id;
+  const byName = new Map(catsOf(folderId).map(c => [c.name.toLowerCase(), c]));
+  const created = new Set();
+  const catFor = name => {
+    if (opts.cat) return opts.cat;
+    const k = name.toLowerCase();
+    let c = byName.get(k);
+    if (!c) { c = { id: uid(), folderId, name }; db.categories.push(c); byName.set(k, c); created.add(c.id); }
+    return c;
+  };
+  const key = (cid, a, b) => cid + '\u001f' + a.toLowerCase() + '\u001f' + b.toLowerCase();
+  const have = new Set(wordsOfFolder(folderId).map(w => key(w.categoryId, w.foreign, w.native)));
+  let added = 0, skipped = 0;
+  rows.forEach((r, idx) => {
+    const c = r.map(x => x.trim());
+    if (c.every(x => !x)) return;
+    if (idx === 0 && (['fremdsprache', 'vorderseite'].includes((c[0] || '').toLowerCase()) || (c[1] || '').toLowerCase() === 'deutsch')) return;
+    if (c.length < 2 || !c[0] || !c[1]) { skipped++; return; }
+    const cat = catFor(c[2] || 'Ohne Kategorie');
+    const k = key(cat.id, c[0], c[1]);
+    if (have.has(k)) { skipped++; return; }
+    have.add(k);
+    db.words.push(fixWord({ id: uid(), categoryId: cat.id, foreign: c[0], native: c[1] }));
+    added++;
+  });
+  return { added, skipped, created: created.size };
+}
+const importMsg = r => r.added + ' importiert, ' + r.skipped + ' übersprungen' + (r.created ? ' · ' + pl(r.created, 'neue Kategorie', 'neue Kategorien') : '');
 function importCsv(opts) {
   pickFile('.csv,.txt,text/csv,text/plain', async file => {
-    const rows = csvParse(await readText(file));
-    const folderId = opts.cat ? opts.cat.folderId : opts.folder.id;
-    const byName = new Map(catsOf(folderId).map(c => [c.name.toLowerCase(), c]));
-    const created = new Set();
-    const catFor = name => {
-      if (opts.cat) return opts.cat;
-      const k = name.toLowerCase();
-      let c = byName.get(k);
-      if (!c) { c = { id: uid(), folderId, name }; db.categories.push(c); byName.set(k, c); created.add(c.id); }
-      return c;
-    };
-    const key = (cid, a, b) => cid + '\u001f' + a.toLowerCase() + '\u001f' + b.toLowerCase();
-    const have = new Set(wordsOfFolder(folderId).map(w => key(w.categoryId, w.foreign, w.native)));
-    let added = 0, skipped = 0;
-    rows.forEach((r, idx) => {
-      const c = r.map(x => x.trim());
-      if (c.every(x => !x)) return;
-      if (idx === 0 && (['fremdsprache', 'vorderseite'].includes((c[0] || '').toLowerCase()) || (c[1] || '').toLowerCase() === 'deutsch')) return;
-      if (c.length < 2 || !c[0] || !c[1]) { skipped++; return; }
-      const cat = catFor(c[2] || 'Ohne Kategorie');
-      const k = key(cat.id, c[0], c[1]);
-      if (have.has(k)) { skipped++; return; }
-      have.add(k);
-      db.words.push(fixWord({ id: uid(), categoryId: cat.id, foreign: c[0], native: c[1] }));
-      added++;
-    });
-    save(); render();
-    toast(added + ' importiert, ' + skipped + ' übersprungen' + (created.size ? ' · ' + pl(created.size, 'neue Kategorie', 'neue Kategorien') : ''));
+    const r = importRows(csvParse(await readText(file)), opts);
+    save(); render(); toast(importMsg(r));
   });
+}
+
+/* Startpakete: CSV-Dateien, die neben index.html im Repository liegen */
+const PACKS = [{ name: 'Türkisch', title: 'Türkisch · 100 häufigste Wörter', file: 'tuerkisch_top100.csv' }];
+async function loadPack(p) {
+  let text;
+  try {
+    const res = await fetch(p.file, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(String(res.status));
+    text = decodeBuf(await res.arrayBuffer());
+  } catch (e) { toast('Startpaket nicht gefunden. Liegt ' + p.file + ' im Repository?'); return; }
+  let f = db.folders.find(x => x.name.toLowerCase() === p.name.toLowerCase());
+  if (!f) { f = { id: uid(), name: p.name }; db.folders.push(f); }
+  const r = importRows(csvParse(text), { folder: f });
+  save(); render(); toast(importMsg(r));
+}
+function packCard() {
+  return h('div', { class: 'card' }, h('h2', {}, 'Startpaket'),
+    PACKS.map(p => h('div', {}, h('p', {}, p.title),
+      h('p', { class: 'muted small' }, 'Wird in den Ordner „' + p.name + '“ geladen, Kategorien inklusive. Bereits vorhandene Wörter werden übersprungen.'),
+      btn('Startpaket laden', () => loadPack(p), 'primary wide'))));
 }
 
 /* ============ Ansichten ============ */
@@ -434,7 +458,7 @@ function viewHome() {
   return h('div', {},
     header('Vokabeln', null, h('button', { class: 'link', onclick: () => go({ name: 'settings' }) }, 'Mehr')),
     h('div', { class: 'pad' }, backupBanner(),
-      rows.length ? rows : empty('Noch kein Ordner', 'Lege pro Sprache einen Ordner an, z. B. „Englisch“. Darin legst du Kategorien an.'),
+      rows.length ? rows : [empty('Noch kein Ordner', 'Lege pro Sprache einen Ordner an, z. B. „Englisch“. Darin legst du Kategorien an.'), packCard()],
       btn([icon('plus'), 'Neuer Ordner (Sprache)'], addFolder, 'primary wide')));
 }
 function addFolder() {
@@ -711,6 +735,7 @@ function viewSettings() {
   return h('div', {},
     header('Mehr'),
     h('div', { class: 'pad' },
+      packCard(),
       h('div', { class: 'card' }, h('h2', {}, 'Backup'),
         h('p', {}, last ? 'Letztes Backup: ' + fmtDate(last) : 'Noch kein Backup gespeichert.'),
         h('p', { class: 'muted small' }, 'Alle Daten liegen nur auf diesem Gerät. Das Backup enthält alles inklusive Lernstand.'),
