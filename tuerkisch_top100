@@ -1,0 +1,101 @@
+Türkisch,Deutsch,Kategorie
+ben,ich,Pronomen
+sen,du,Pronomen
+o,er / sie / es; jener,Pronomen
+biz,wir,Pronomen
+siz,ihr / Sie,Pronomen
+onlar,sie (Plural),Pronomen
+bu,dies / das,Pronomen
+şu,das da,Pronomen
+her,jeder,Pronomen
+kim,wer,Pronomen
+hiç,"überhaupt (nicht), nie",Pronomen
+kendi,"eigen, selbst",Pronomen
+herkes,"alle, jeder",Pronomen
+ne,was,Fragewort
+nasıl,wie,Fragewort
+neden,warum,Fragewort
+nerede,wo,Fragewort
+nereye,wohin,Fragewort
+ne zaman,wann,Fragewort
+kaç,wie viele,Fragewort
+hangi,welcher,Fragewort
+ve,und,Konjunktion
+ama,aber,Konjunktion
+veya,oder,Konjunktion
+çünkü,"weil, denn",Konjunktion
+eğer,wenn (falls),Konjunktion
+için,"für, wegen",Postposition
+ile,mit,Postposition
+gibi,wie,Postposition
+kadar,bis; so viel wie,Postposition
+de / da,auch,Partikel
+mi,Fragepartikel,Partikel
+bile,sogar,Partikel
+sadece,nur,Partikel
+bir,"ein, eins",Zahlwort
+iki,zwei,Zahlwort
+evet,ja,Alltag
+hayır,nein,Alltag
+değil,nicht (bei Nomen/Adjektiv),Alltag
+tamam,okay,Alltag
+lütfen,bitte,Alltag
+teşekkürler,danke,Alltag
+merhaba,hallo,Alltag
+var,es gibt / vorhanden,Existenz
+yok,es gibt nicht / nicht vorhanden,Existenz
+çok,"sehr, viel",Adverb
+daha,"mehr, noch",Adverb
+en,am (Superlativ),Adverb
+az,wenig,Adverb
+sonra,danach,Adverb
+önce,"zuerst, vorher",Adverb
+şimdi,jetzt,Adverb
+hemen,sofort,Adverb
+bugün,heute,Adverb
+yarın,morgen,Adverb
+dün,gestern,Adverb
+burada,hier,Adverb
+orada,dort,Adverb
+belki,vielleicht,Adverb
+hâlâ,immer noch,Adverb
+her zaman,immer,Adverb
+bazen,manchmal,Adverb
+olmak,"sein, werden",Verb
+yapmak,"machen, tun",Verb
+gelmek,kommen,Verb
+gitmek,gehen,Verb
+bilmek,"wissen, können",Verb
+istemek,wollen,Verb
+görmek,sehen,Verb
+demek,sagen,Verb
+vermek,geben,Verb
+almak,"nehmen, kaufen",Verb
+bakmak,schauen,Verb
+düşünmek,denken,Verb
+konuşmak,sprechen,Verb
+anlamak,verstehen,Verb
+çalışmak,"arbeiten, lernen",Verb
+yemek,essen,Verb
+içmek,trinken,Verb
+sevmek,"lieben, mögen",Verb
+bulmak,finden,Verb
+kalmak,bleiben,Verb
+şey,"Ding, etwas",Substantiv
+zaman,Zeit,Substantiv
+gün,Tag,Substantiv
+insan,Mensch,Substantiv
+yer,"Ort, Platz",Substantiv
+iş,"Arbeit, Job",Substantiv
+ev,"Haus, Zuhause",Substantiv
+su,Wasser,Substantiv
+para,Geld,Substantiv
+yıl,Jahr,Substantiv
+arkadaş,Freund(in),Substantiv
+iyi,gut,Adjektiv
+büyük,groß,Adjektiv
+küçük,klein,Adjektiv
+güzel,schön,Adjektiv
+yeni,neu,Adjektiv
+kötü,schlecht,Adjektiv
+eski,alt (Sachen),Adjektiv
