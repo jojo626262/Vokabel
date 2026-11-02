@@ -783,8 +783,29 @@ function render(keepScroll = true) {
   }
 }
 
+/* Erststart: Startpaket automatisch laden, damit am Handy nichts eingetragen werden muss */
+async function autoImportPacks() {
+  if (db.meta.packTried) return;
+  db.meta.packTried = true;
+  if (db.words.length || db.folders.length) { save(); return; }
+  save();
+  let added = 0;
+  for (const p of PACKS) {
+    try {
+      const res = await fetch(p.file);
+      if (!res.ok) continue;
+      const text = decodeBuf(await res.arrayBuffer());
+      let f = db.folders.find(x => x.name.toLowerCase() === p.name.toLowerCase());
+      if (!f) { f = { id: uid(), name: p.name }; db.folders.push(f); }
+      added += importRows(csvParse(text), { folder: f }).added;
+    } catch (e) { /* offline und nicht im Cache: dann eben manuell */ }
+  }
+  if (added) { save(); toast(added + ' Wörter aus dem Startpaket geladen'); render(false); }
+}
+
 /* ============ Start ============ */
 render(false);
+autoImportPacks();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* egal */ }
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

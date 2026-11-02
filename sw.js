@@ -1,4 +1,4 @@
-const CACHE = 'vokabeln-v4';
+const CACHE = 'vokabeln-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './tuerkisch_top100.csv'];
 
 self.addEventListener('install', e => {
